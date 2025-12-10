@@ -26,9 +26,18 @@ jobs:
 
       - name: Generate HTML documentation
         run: |
-          for module in $(ls packages\markitdown\src\markitdown\converters\*.py | grep -v -E '^test_|^__init__\.py'); do
-              pdoc -o docs "$module"
+          # Удаляем старую документацию
+          rm -rf docs
+          mkdir docs
+
+          # Находим все .py файлы, кроме тестов и __init__.py
+          FILES=$(find . -type f -name "*.py" ! -name "__init__.py" ! -name "test_*.py")
+
+          # Генерируем документацию для всех найденных файлов
+          for file in $FILES; do
+              pdoc -o docs --skip-errors "$file"
           done
+
 
       - name: Commit & Push docs
         run: |
