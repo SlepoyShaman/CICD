@@ -1,43 +1,105 @@
-name: Auto-generate documentation with pdoc
+# .github/workflows/docs.yml
+name: Documentation
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main, develop ]
+    paths:
+      - 'src/**'
+      - 'docs/**'
+      - 'pyproject.toml'
+      - 'requirements*.txt'
+      - '.github/workflows/docs.yml'
+      - '!docs/build/**'  # Исключаем сгенерированную документацию
 
-permissions:
-  contents: write
+env:
+  PYTHON_VERSION: '3.9'
+  DOCS_DIR: './docs'
+  BUILD_DIR: './docs/_build'
+  CACHE_KEY: docs-${{ github.sha }}
 
-jobs:
-  generate-docs:
+jobs:   
+  build-docs:
+    name: Build Documentation
     runs-on: ubuntu-latest
-
+    needs: validate-docs
+    if: success() && github.event_name == 'pull_request'
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install pdoc
-        run: pip install --upgrade "pdoc>=14.0.0"
-
-      - name: Generate HTML documentation
-        run: |
-          for module in $(ls *.py | grep -v -E '^test_|^__init__\.py'); do
-              pdoc -o docs "$module"
-          done
-
-      - name: Commit & Push docs
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-            exit 0
-          fi
-          git commit -m "Auto-generate docs with pdoc"
-          git push
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Cache dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt', 'pyproject.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install documentation dependencies
+      run: |
+        pip install sphinx sphinx-rtd-theme myst-parser sphinx-autodoc-typehints
+        pip install sphinx-copybutton sphinx-design
+        pip install .
+        
+    - name: Build HTML documentation
+      run: |
+        sphinx-build -b html docs/source docs/_build/html -W --keep-going
+        
+    - name: Upload documentation artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: docs-preview
+        path: docs/_build/html
+        retention-days: 7
+        
+  deploy-docs:
+    name: Deploy Documentation
+    runs-on: ubuntu-latest
+    needs: [build-docs, generate-api-docs]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+      
+    permissions:
+      pages: write
+      id-token: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements-docs.txt
+        
+    - name: Build all documentation formats
+      run: |
+        sphinx-build -b html docs/source docs/_build/html -W
+        
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs/_build/html
+        
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      
+      
