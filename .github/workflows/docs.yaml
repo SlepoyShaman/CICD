@@ -24,19 +24,20 @@ jobs:
       - name: Install pdoc
         run: pip install --upgrade "pdoc>=14.0.0"
 
-      - name: Generate HTML documentation recursively
+      - name: Generate HTML documentation
         run: |
-          # Находим все Python файлы (исключая тесты) и генерируем документацию
-          find . -type f -name "*.py" ! -path "./docs/*" ! -name "test_*.py" ! -name "*_test.py" ! -path "./.*" | \
-          while read -r file; do
-            # Получаем относительный путь для создания структуры каталогов
-            rel_path="${file#./}"
-            # Для каждого модуля генерируем документацию
-            pdoc -o "docs" "$rel_path" || true
+          # Удаляем старую документацию
+          rm -rf docs
+          mkdir docs
+
+          # Находим все .py файлы, кроме тестов и __init__.py, рекурсивно
+          FILES=$(find . -name "*.py" ! -name "__init__.py" ! -name "test_*.py")
+
+          # Генерируем документацию для каждого файла
+          for file in $FILES; do
+              pdoc -o docs markitdown_mcp
           done
-          
-          # Альтернативный вариант с использованием pdoc для всего проекта
-          # pdoc -o docs ./ 2>/dev/null || true
+
 
       - name: Commit & Push docs
         run: |
