@@ -26,18 +26,9 @@ jobs:
 
       - name: Generate HTML documentation
         run: |
-          # Удаляем старую документацию
-          rm -rf docs
-          mkdir docs
-
-          # Находим все .py файлы, кроме тестов и __init__.py, рекурсивно
-          FILES=$(find . -name "*.py" ! -name "__init__.py" ! -name "test_*.py")
-
-          # Генерируем документацию для каждого файла
-          for file in $FILES; do
-              pdoc -o docs markitdown_mcp
+          for module in $(ls *.py | grep -v -E '^test_|^__init__\.py'); do
+              pdoc -o docs "$module"
           done
-
 
       - name: Commit & Push docs
         run: |
