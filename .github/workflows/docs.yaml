@@ -35,7 +35,7 @@ jobs:
 
           # Генерируем документацию для всех найденных файлов
           for file in $FILES; do
-              pdoc -o docs --skip-errors "$file"
+              pdoc -o docs "$file"
           done
 
 
