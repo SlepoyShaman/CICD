@@ -1,9 +1,15 @@
-name: docs
+name: Auto-generate documentation with pdoc
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
 
 jobs:
-  docs:
+  generate-docs:
     runs-on: ubuntu-latest
 
     steps:
