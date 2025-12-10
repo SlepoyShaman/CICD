@@ -1,9 +1,9 @@
-name: Deploy Docs
+name: docs
 
 on: [push]
 
 jobs:
-  generate-docs:
+  docs:
     runs-on: ubuntu-latest
 
     steps:
