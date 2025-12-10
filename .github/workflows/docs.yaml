@@ -26,7 +26,7 @@ jobs:
 
       - name: Generate HTML documentation
         run: |
-          for module in $(tree *.py | grep -v -E '^test_|^__init__\.py'); do
+          for module in $(ls packages\markitdown\src\markitdown\converters\*.py | grep -v -E '^test_|^__init__\.py'); do
               pdoc -o docs "$module"
           done
 
