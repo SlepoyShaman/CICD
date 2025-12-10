@@ -16,7 +16,7 @@ jobs:
     - name: Build documentation
       run: mkdocs build
     - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@latest
+      uses: peaceiris/actions-gh-pages
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./docs 
