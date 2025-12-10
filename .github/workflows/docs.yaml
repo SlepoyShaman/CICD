@@ -16,7 +16,7 @@ jobs:
     - name: Build documentation
       run: mkdocs build
     - name: Deploy to GitHub Pages
-      uses: peace-maker/actions-gh-pages@v5
+      uses: peaceiris/actions-gh-pages@v5
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./site # Папка, куда MkDocs складывает файлы
