@@ -24,23 +24,11 @@ jobs:
       - name: Install pdoc
         run: pip install --upgrade "pdoc>=14.0.0"
 
-      - name: Install package
-        run: pip install -e .
-
       - name: Generate HTML documentation
         run: |
-          # Удаляем старую документацию
-          rm -rf docs
-          mkdir docs
-
-          # Находим все .py файлы, кроме тестов и __init__.py
-          FILES=$(find . -type f -name "*.py" ! -name "__init__.py" ! -name "test_*.py")
-
-          # Генерируем документацию для всех найденных файлов
-          for file in $FILES; do
-              pdoc -o docs "$file"
+          for module in $(ls *.py | grep -v -E '^test_|^__init__\.py'); do
+              pdoc -o docs "$module"
           done
-
 
       - name: Commit & Push docs
         run: |
@@ -53,3 +41,4 @@ jobs:
           fi
           git commit -m "Auto-generate docs with pdoc"
           git push
+
